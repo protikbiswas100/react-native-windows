@@ -1,4 +1,3 @@
-
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
@@ -147,9 +146,26 @@ winrt::Microsoft::ReactNative::Composition::Experimental::ICompositionContext Co
 void ComponentView::updateProps(
     facebook::react::Props::Shared const &props,
     facebook::react::Props::Shared const &oldProps) noexcept {
-  const auto &oldViewProps =
-      oldProps ? (*std::static_pointer_cast<const facebook::react::ViewProps>(oldProps)) : (*viewProps());
+  const auto &oldViewProps = *std::static_pointer_cast<const facebook::react::ViewProps>(oldProps ? oldProps : m_props);
   const auto &newViewProps = *std::static_pointer_cast<const facebook::react::ViewProps>(props);
+
+  // Update tabIndex using Windows UI Composition
+  if (oldViewProps.tabIndex != newViewProps.tabIndex) {
+    ensureVisual();
+    if (newViewProps.tabIndex.has_value()) {
+      // Set tab index and make focusable 
+      auto visual = Visual();
+      // Use ensureTabFocusVisual helper instead of direct interop
+      ensureTabFocusVisual();
+    }
+  }
+
+  // Update focus properties
+  if (!oldProps || oldViewProps.focusable != newViewProps.focusable) {
+    ensureVisual();
+    // Use ensureTabFocusVisual helper instead of direct interop
+    ensureTabFocusVisual();
+  }
 
   if ((m_flags & ComponentViewFeatures::Background) == ComponentViewFeatures::Background) {
     if (oldViewProps.backgroundColor != newViewProps.backgroundColor) {
@@ -374,6 +390,11 @@ void ComponentView::onGotFocus(
     const winrt::Microsoft::ReactNative::Composition::Input::RoutedEventArgs &args) noexcept {
   if (args.OriginalSource() == Tag()) {
     m_eventEmitter->onFocus();
+
+    // Handle focus using Windows UI Composition
+    ensureVisual();
+    // Remove direct Visual interop usage, focus visuals are handled elsewhere
+    // Show focus visual if enabled
     if (viewProps()->enableFocusRing) {
       facebook::react::Rect focusRect = m_layoutMetrics.frame;
       focusRect.origin.x -= (FOCUS_VISUAL_WIDTH * 2);
@@ -382,6 +403,8 @@ void ComponentView::onGotFocus(
       focusRect.size.height += (FOCUS_VISUAL_WIDTH * 2);
       focusVisualRoot(focusRect)->hostFocusVisual(true, get_strong());
     }
+
+    // Update UIA properties
     if (UiaClientsAreListening()) {
       auto spProviderSimple = EnsureUiaProvider().try_as<IRawElementProviderSimple>();
       if (spProviderSimple != nullptr) {

@@ -1,4 +1,3 @@
-
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
@@ -134,6 +133,7 @@ struct ComponentView : public ComponentViewT<
   winrt::Microsoft::ReactNative::Composition::Experimental::ICompositionContext m_compContext;
   comp::CompositionPropertySet m_centerPropSet{nullptr};
   facebook::react::SharedViewEventEmitter m_eventEmitter;
+  facebook::react::Props::Shared m_props;
 
  private:
   void updateFocusLayoutMetrics() noexcept;
@@ -153,6 +153,9 @@ struct ComponentView : public ComponentViewT<
   virtual winrt::Microsoft::ReactNative::Composition::Experimental::IVisual visualToHostFocus() noexcept;
   virtual winrt::com_ptr<ComponentView> focusVisualRoot(const facebook::react::Rect &focusRect) noexcept;
 
+  // Add ensureVisual helper for base ComponentView
+protected:
+  virtual void ensureVisual() noexcept {}
   bool m_hasTransformMatrixFacade : 1 {false};
   bool m_FinalizeTransform : 1 {false};
   bool m_tooltipTracked : 1 {false};
@@ -164,6 +167,22 @@ struct ComponentView : public ComponentViewT<
   std::unique_ptr<FocusPrimitive> m_focusPrimitive{nullptr};
   winrt::Microsoft::ReactNative::Composition::Experimental::IVisual m_outerVisual{nullptr};
   winrt::event<winrt::Windows::Foundation::EventHandler<winrt::IInspectable>> m_themeChangedEvent;
+
+  // Handle tab focus on Visual using Windows UI Composition
+  void ensureTabFocusVisual() noexcept {
+    auto visual = Visual();
+    auto visualInterop = visual.try_as<winrt::Windows::UI::Composition::Visual>();
+    if (visualInterop) {
+      auto props = std::static_pointer_cast<const facebook::react::ViewProps>(m_props);
+      visualInterop.IsTabStop(props->focusable);
+      if (props->tabIndex.has_value()) {
+        visualInterop.TabFocusNavigation(
+            props->tabIndex.value() < 0 ? 
+            winrt::Windows::UI::Composition::TabFocusNavigationMode::Once :
+            winrt::Windows::UI::Composition::TabFocusNavigationMode::Cycle);
+      }
+    }
+  }
 };
 
 struct ViewComponentView : public ViewComponentViewT<

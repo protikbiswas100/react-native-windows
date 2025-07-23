@@ -36,6 +36,7 @@ class HostPlatformViewProps : public BaseViewProps {
 
   // std::optional<std::string> overflowAnchor{};
   std::optional<std::string> tooltip{};
+  std::optional<int> tabIndex{}; // [Windows] tabIndex support for View
   std::vector<HandledKeyEvent> keyDownEvents{};
   std::vector<HandledKeyEvent> keyUpEvents{};
 };
