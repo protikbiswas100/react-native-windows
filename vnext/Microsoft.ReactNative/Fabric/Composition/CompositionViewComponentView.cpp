@@ -1,4 +1,3 @@
-
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
@@ -151,6 +150,23 @@ void ComponentView::updateProps(
       oldProps ? (*std::static_pointer_cast<const facebook::react::ViewProps>(oldProps)) : (*viewProps());
   const auto &newViewProps = *std::static_pointer_cast<const facebook::react::ViewProps>(props);
 
+  // Update tabIndex using Windows UI Composition
+  if (oldViewProps.tabIndex != newViewProps.tabIndex) {
+    ensureVisual();
+    if (newViewProps.tabIndex.has_value()) {
+      // Set tab index and make focusable
+      auto visual = Visual();
+      // Use ensureTabFocusVisual helper instead of direct interop
+      ensureTabFocusVisual();
+    }
+  }
+
+  // Update focus properties
+  if (!oldProps || oldViewProps.focusable != newViewProps.focusable) {
+    ensureVisual();
+    // Use ensureTabFocusVisual helper instead of direct interop
+    ensureTabFocusVisual();
+  }
   if ((m_flags & ComponentViewFeatures::Background) == ComponentViewFeatures::Background) {
     if (oldViewProps.backgroundColor != newViewProps.backgroundColor) {
       if (newViewProps.backgroundColor) {
@@ -374,6 +390,10 @@ void ComponentView::onGotFocus(
     const winrt::Microsoft::ReactNative::Composition::Input::RoutedEventArgs &args) noexcept {
   if (args.OriginalSource() == Tag()) {
     m_eventEmitter->onFocus();
+    // Handle focus using Windows UI Composition
+    ensureVisual();
+    // Remove direct Visual interop usage, focus visuals are handled elsewhere
+    // Show focus visual if enabled
     if (viewProps()->enableFocusRing) {
       facebook::react::Rect focusRect = m_layoutMetrics.frame;
       focusRect.origin.x -= (FOCUS_VISUAL_WIDTH * 2);
@@ -682,6 +702,62 @@ void ComponentView::hostFocusVisual(bool show, winrt::com_ptr<ComponentView> vie
       view->m_componentHostingFocusVisual = nullptr;
     }
   }
+}
+
+void ComponentView::ensureTabFocusVisual() noexcept {
+  
+  // Only create focus visual if we haven't already
+  if (!m_focusPrimitive) {
+    m_focusPrimitive = std::make_unique<FocusPrimitive>();
+  }
+
+  // Create the focus visual container if it doesn't exist
+  if (!m_focusPrimitive->m_focusVisual) {
+    m_focusPrimitive->m_focusVisual = m_compContext.CreateSpriteVisual();
+    
+    // Get the hosting visual for focus
+    auto hostingVisual = winrt::Microsoft::ReactNative::Composition::Experimental::CompositionContextHelper::InnerVisual(
+        visualToHostFocus()).as<winrt::Microsoft::UI::Composition::ContainerVisual>();
+    
+    if (hostingVisual) {
+      // Insert the focus visual into the visual tree
+      hostingVisual.Children().InsertAtTop(
+          winrt::Microsoft::ReactNative::Composition::Experimental::CompositionContextHelper::InnerVisual(
+              m_focusPrimitive->m_focusVisual));
+    } else {
+      // If no hosting visual, add to outer visual
+      OuterVisual().InsertAt(m_focusPrimitive->m_focusVisual, 1);
+    }
+  }
+  
+
+
+ // Set up focus visual properties
+  m_focusPrimitive->m_focusVisual.IsVisible(viewProps()->enableFocusRing);
+
+  // Create inner focus primitive if needed
+  if (!m_focusPrimitive->m_focusInnerPrimitive) {
+    m_focusPrimitive->m_focusInnerPrimitive = std::make_shared<BorderPrimitive>(*this);
+    m_focusPrimitive->m_focusVisual.InsertAt(m_focusPrimitive->m_focusInnerPrimitive->RootVisual(), 0);
+  }
+
+  // Create outer focus primitive if needed
+  if (!m_focusPrimitive->m_focusOuterPrimitive) {
+    m_focusPrimitive->m_focusOuterPrimitive = std::make_shared<BorderPrimitive>(*this);
+    m_focusPrimitive->m_focusVisual.InsertAt(m_focusPrimitive->m_focusOuterPrimitive->RootVisual(), 0);
+  }
+
+  // Set up focus visual transform parent if using composition
+  if (auto focusVisual = winrt::Microsoft::ReactNative::Composition::Experimental::CompositionContextHelper::InnerVisual(
+          m_focusPrimitive->m_focusVisual)) {
+    auto outerVisual = winrt::Microsoft::ReactNative::Composition::Experimental::CompositionContextHelper::InnerVisual(
+        OuterVisual());
+    focusVisual.ParentForTransform(outerVisual);
+  }
+
+  // Update the layout metrics for the focus visual
+  //updateFocusLayoutMetrics();
+  
 }
 
 void ComponentView::updateShadowProps(

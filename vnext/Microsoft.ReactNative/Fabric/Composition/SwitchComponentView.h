@@ -1,4 +1,3 @@
-
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
@@ -61,7 +60,14 @@ struct SwitchComponentView : SwitchComponentViewT<SwitchComponentView, ViewCompo
   winrt::Microsoft::ReactNative::Composition::Experimental::IVisual createVisual() noexcept override;
 
  private:
-  void ensureVisual() noexcept;
+  void ensureVisual() noexcept override {
+    if (Visual() == nullptr) {
+      auto visual = createVisual();
+      OuterVisual().InsertAt(visual, 0);
+      // If ViewComponentView does not automatically set m_visual, you may need to add a protected setter in ViewComponentView
+      // For now, rely on Visual() to return the correct visual
+    }
+  }
   bool toggle() noexcept;
   void handleScaleChange() noexcept;
   void updateVisuals() noexcept;
