@@ -1124,8 +1124,11 @@ void ViewComponentView::updateProps(
       visual.IsHitTestVisible(true);
     } else {
       // Remove tabIndex property when not set
+      auto tabIndexRef = visual.Properties().TryGetValue(L"ReactNative.TabIndex");
+      if (tabIndexRef) {
       visual.Properties().InsertScalar(L"ReactNative.TabIndex", std::numeric_limits<float>::quiet_NaN());
     }
+  }
   }
 
   // update BaseComponentView props
@@ -1341,6 +1344,8 @@ bool ViewComponentView::focusable() const noexcept {
   if (m_visual) {
     auto visual =
         winrt::Microsoft::ReactNative::Composition::Experimental::CompositionContextHelper::InnerVisual(Visual());
+    if (auto tabIndexValue = visual.Properties().TryGetScalar(L"ReactNative.TabIndex", nullptr)) {
+      auto tabIndex = static_cast<int>(tabIndexValue.Value());
     float tabIndexValue = 0.0f;
     if (visual.Properties().TryGetScalar(L"ReactNative.TabIndex", tabIndexValue) == winrt::Microsoft::UI::Composition::CompositionGetValueStatus::Succeeded) {
       int tabIndex = static_cast<int>(tabIndexValue);
@@ -1373,6 +1378,8 @@ int ViewComponentView::tabIndex() const noexcept {
   if (m_visual) {
     auto visual =
         winrt::Microsoft::ReactNative::Composition::Experimental::CompositionContextHelper::InnerVisual(Visual());
+    if (auto tabIndexValue = visual.Properties().TryGetScalar(L"ReactNative.TabIndex")) {
+      return static_cast<int>(tabIndexValue.Value());
     float tabIndexValue = 0.0f;
     if (visual.Properties().TryGetScalar(L"ReactNative.TabIndex", tabIndexValue) == winrt::Microsoft::UI::Composition::CompositionGetValueStatus::Succeeded) {
       return static_cast<int>(tabIndexValue);

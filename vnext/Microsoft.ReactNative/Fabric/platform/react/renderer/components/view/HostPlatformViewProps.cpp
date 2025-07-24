@@ -73,18 +73,11 @@ HostPlatformViewProps::HostPlatformViewProps(
                                                                         "accessibilityLiveRegion",
                                                                         sourceProps.accessibilityLiveRegion,
                                                                         "none")),
-<<<<<<< HEAD
       tabIndex(
           ReactNativeFeatureFlags::enableCppPropsIteratorSetter()
               ? sourceProps.tabIndex
               : convertRawProp(context, rawProps, "tabIndex", sourceProps.tabIndex, std::numeric_limits<int>::max())) {}
 
-=======
-    tabIndex(
-          ReactNativeFeatureFlags::enableCppPropsIteratorSetter()
-              ? sourceProps.tabIndex
-              : convertRawProp(context, rawProps, "tabIndex", sourceProps.tabIndex, std::numeric_limits<int>::max())) {}
->>>>>>> a6866f532b097ea026cfa1538d2bfd2d08ad30ae
 
 #define WINDOWS_VIEW_EVENT_CASE(eventType)                    \
   case CONSTEXPR_RAW_PROPS_KEY_HASH("on" #eventType): {       \

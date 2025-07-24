@@ -39,10 +39,6 @@ class HostPlatformViewProps : public BaseViewProps {
   std::optional<std::string> tooltip{};
   std::vector<HandledKeyEvent> keyDownEvents{};
   std::vector<HandledKeyEvent> keyUpEvents{};
-<<<<<<< HEAD
   int tabIndex{std::numeric_limits<int>::max()};
-=======
-  int tabIndex{std::numeric_limits<int>::max()}; // Default to max int, which means no tabIndex set
->>>>>>> a6866f532b097ea026cfa1538d2bfd2d08ad30ae
 };
 } // namespace facebook::react
