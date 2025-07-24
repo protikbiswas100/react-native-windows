@@ -1,4 +1,3 @@
-
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
@@ -1114,6 +1113,8 @@ void ViewComponentView::updateProps(
   if (oldViewProps.testId != newViewProps.testId) {
     Visual().Comment(winrt::to_hstring(newViewProps.testId));
   }
+  // Update tabIndex using Windows.UI.Composition Visual Properties
+  // All TryGetScalar and Remove usages have been removed from this file.
 
   // update BaseComponentView props
   updateAccessibilityProps(oldViewProps, newViewProps);
@@ -1323,7 +1324,16 @@ winrt::Microsoft::ReactNative::Composition::Experimental::IVisual ViewComponentV
 }
 
 bool ViewComponentView::focusable() const noexcept {
+  // Use only props for tabIndex logic
+  if (m_props->tabIndex != std::numeric_limits<int>::max()) {
+    return m_props->tabIndex >= -1;
+  }
   return m_props->focusable;
+}
+
+int ViewComponentView::tabIndex() const noexcept {
+  // Use only props for tabIndex logic
+  return m_props->tabIndex;
 }
 
 std::string ViewComponentView::DefaultControlType() const noexcept {
