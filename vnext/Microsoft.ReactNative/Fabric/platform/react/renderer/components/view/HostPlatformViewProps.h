@@ -8,6 +8,7 @@
 #include "CompositionAccessibilityProps.h"
 #include "KeyEvent.h"
 #include "WindowsViewEvents.h"
+#include <limits>
 
 namespace facebook::react {
 class HostPlatformViewProps : public BaseViewProps {
@@ -38,5 +39,6 @@ class HostPlatformViewProps : public BaseViewProps {
   std::optional<std::string> tooltip{};
   std::vector<HandledKeyEvent> keyDownEvents{};
   std::vector<HandledKeyEvent> keyUpEvents{};
+  int tabIndex{std::numeric_limits<int>::max()}; // Default to max int, which means no tabIndex set
 };
 } // namespace facebook::react

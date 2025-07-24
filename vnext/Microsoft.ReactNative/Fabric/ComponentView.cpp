@@ -6,7 +6,7 @@
 
 #include <Fabric/AbiState.h>
 #include "DynamicReader.h"
-
+#include <limits.h>
 #include "ComponentView.g.cpp"
 #include "LayoutMetricsChangedArgs.g.cpp"
 #include "MountChildComponentViewArgs.g.cpp"
@@ -610,6 +610,10 @@ void ComponentView::OnCharacterReceived(
 
 bool ComponentView::focusable() const noexcept {
   return false;
+}
+
+int ComponentView::tabIndex() const noexcept {
+  return std::numeric_limits<int>::max();
 }
 
 facebook::react::SharedViewEventEmitter ComponentView::eventEmitterAtPoint(facebook::react::Point pt) noexcept {
