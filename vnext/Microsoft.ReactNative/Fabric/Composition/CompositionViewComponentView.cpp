@@ -1336,6 +1336,7 @@ winrt::Microsoft::ReactNative::Composition::Experimental::IVisual ViewComponentV
 }
 
 bool ViewComponentView::focusable() const noexcept {
+<<<<<<< HEAD
   // Check if tabIndex is explicitly set via Windows.UI.Composition Visual Properties
   if (m_visual) {
     auto visual =
@@ -1354,10 +1355,20 @@ bool ViewComponentView::focusable() const noexcept {
   }
 
   // Default focusable behavior from props
+=======
+  // If tabIndex is set to a valid value (not max int), then it should be focusable
+  // This matches the behavior of the Paper implementation
+  if (m_props->tabIndex != std::numeric_limits<int>::max()) {
+    return true;
+  }
+
+  // Otherwise, use the focusable property
+>>>>>>> a6866f532b097ea026cfa1538d2bfd2d08ad30ae
   return m_props->focusable;
 }
 
 int ViewComponentView::tabIndex() const noexcept {
+<<<<<<< HEAD
   // Read tabIndex from Windows.UI.Composition Visual Properties
   if (m_visual) {
     auto visual =
@@ -1368,6 +1379,8 @@ int ViewComponentView::tabIndex() const noexcept {
     }
   }
   // Fallback to props if not set in Visual Properties
+=======
+>>>>>>> a6866f532b097ea026cfa1538d2bfd2d08ad30ae
   return m_props->tabIndex;
 }
 

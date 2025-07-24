@@ -199,11 +199,19 @@ describe('View Tests', () => {
     const dump = await dumpVisualTree('nativeid');
     expect(dump).toMatchSnapshot();
   });
+<<<<<<< HEAD
   test('Views can have tabIndex', async () => {
+=======
+  test('Views can have a tabIndex', async () => {
+>>>>>>> a6866f532b097ea026cfa1538d2bfd2d08ad30ae
     await searchBox('tab');
     const componentsTab = await app.findElementByTestID('view-test-tab-index');
     await componentsTab.waitForDisplayed({timeout: 5000});
     const dump = await dumpVisualTree('view-test-tab-index');
     expect(dump).toMatchSnapshot();
+<<<<<<< HEAD
   });
+=======
+  }); 
+>>>>>>> a6866f532b097ea026cfa1538d2bfd2d08ad30ae
 });

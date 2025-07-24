@@ -6,7 +6,7 @@
 
 #include <Fabric/AbiState.h>
 #include "DynamicReader.h"
-#include <limits>
+#include <limits.h>
 #include "ComponentView.g.cpp"
 #include "LayoutMetricsChangedArgs.g.cpp"
 #include "MountChildComponentViewArgs.g.cpp"
