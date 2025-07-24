@@ -1,4 +1,3 @@
-
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
@@ -1114,6 +1113,20 @@ void ViewComponentView::updateProps(
   if (oldViewProps.testId != newViewProps.testId) {
     Visual().Comment(winrt::to_hstring(newViewProps.testId));
   }
+  // Update tabIndex using Windows.UI.Composition Visual Properties
+  if (oldViewProps.tabIndex != newViewProps.tabIndex) {
+    auto visual =
+        winrt::Microsoft::ReactNative::Composition::Experimental::CompositionContextHelper::InnerVisual(Visual());
+    if (newViewProps.tabIndex != std::numeric_limits<int>::max()) {
+      // Store tabIndex in Visual's Properties collection
+      visual.Properties().InsertScalar(L"ReactNative.TabIndex", static_cast<float>(newViewProps.tabIndex));
+      // Also set IsHitTestVisible to make it participate in focus
+      visual.IsHitTestVisible(true);
+    } else {
+      // Remove tabIndex property when not set
+      visual.Properties().InsertScalar(L"ReactNative.TabIndex", std::numeric_limits<float>::quiet_NaN());
+    }
+  }
 
   // update BaseComponentView props
   updateAccessibilityProps(oldViewProps, newViewProps);
@@ -1323,7 +1336,39 @@ winrt::Microsoft::ReactNative::Composition::Experimental::IVisual ViewComponentV
 }
 
 bool ViewComponentView::focusable() const noexcept {
+  // Check if tabIndex is explicitly set via Windows.UI.Composition Visual Properties
+  if (m_visual) {
+    auto visual =
+        winrt::Microsoft::ReactNative::Composition::Experimental::CompositionContextHelper::InnerVisual(Visual());
+    float tabIndexValue = 0.0f;
+    if (visual.Properties().TryGetScalar(L"ReactNative.TabIndex", tabIndexValue) == winrt::Microsoft::UI::Composition::CompositionGetValueStatus::Succeeded) {
+      int tabIndex = static_cast<int>(tabIndexValue);
+      // Elements with tabIndex >= 0 are focusable, negative tabIndex means focusable but not in tab order
+      return tabIndex >= -1;
+    }
+  }
+
+  // Fallback to props-based logic if not set in Visual Properties
+  if (m_props->tabIndex != std::numeric_limits<int>::max()) {
+    return m_props->tabIndex >= -1;
+  }
+
+  // Default focusable behavior from props
   return m_props->focusable;
+}
+
+int ViewComponentView::tabIndex() const noexcept {
+  // Read tabIndex from Windows.UI.Composition Visual Properties
+  if (m_visual) {
+    auto visual =
+        winrt::Microsoft::ReactNative::Composition::Experimental::CompositionContextHelper::InnerVisual(Visual());
+    float tabIndexValue = 0.0f;
+    if (visual.Properties().TryGetScalar(L"ReactNative.TabIndex", tabIndexValue) == winrt::Microsoft::UI::Composition::CompositionGetValueStatus::Succeeded) {
+      return static_cast<int>(tabIndexValue);
+    }
+  }
+  // Fallback to props if not set in Visual Properties
+  return m_props->tabIndex;
 }
 
 std::string ViewComponentView::DefaultControlType() const noexcept {

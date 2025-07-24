@@ -123,8 +123,9 @@ winrt::Microsoft::ReactNative::implementation::ComponentView *NavigateFocusHelpe
   winrt::Microsoft::ReactNative::implementation::ComponentView *toFocus = nullptr;
 
   Mso::Functor<bool(::winrt::Microsoft::ReactNative::implementation::ComponentView & v)> fn =
-      [reason, &toFocus](::winrt::Microsoft::ReactNative::implementation::ComponentView &v) noexcept
-      -> bool { return (toFocus = NavigateFocusHelper(v, reason)); };
+       [reason, &toFocus](::winrt::Microsoft::ReactNative::implementation::ComponentView &v) noexcept -> bool {
+    return (toFocus = NavigateFocusHelper(v, reason));
+  };
 
   if (view.runOnChildren(reason == winrt::Microsoft::ReactNative::FocusNavigationReason::First, fn)) {
     return toFocus;
